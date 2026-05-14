@@ -217,10 +217,69 @@ async function submitLead(event) {
     }
 
     leadForm.reset();
-    leadMessage.textContent = "送信を受け付けました。結果PDFをお送りします。";
+
+    try {
+      await downloadResultPdf(email);
+      leadMessage.textContent = "送信を受け付けました。結果PDFを作成しました。";
+    } catch (pdfError) {
+      leadMessage.textContent = "送信を受け付けました。PDF作成だけ失敗しました。";
+    }
   } catch (error) {
     leadMessage.textContent = "送信できませんでした。時間をおいてもう一度お試しください。";
   }
+}
+
+async function downloadResultPdf(email) {
+  if (typeof html2pdf === "undefined") {
+    throw new Error("PDF library is not available");
+  }
+
+  const report = document.createElement("section");
+  report.className = "pdf-report";
+  report.innerHTML = `
+    <div class="pdf-brand">Office 20</div>
+    <h1>Drone Quest 結果レポート</h1>
+    <p class="pdf-subtitle">FAA Part 107 Vocabulary RPG</p>
+    <div class="pdf-score">${score} 点</div>
+    <div class="pdf-grid">
+      <div><strong>正解</strong><span>${correctCount}/${missionLength}</span></div>
+      <div><strong>残りバッテリー</strong><span>${battery}%</span></div>
+      <div><strong>メール</strong><span>${email}</span></div>
+    </div>
+    <h2>覚えた単語</h2>
+    ${formatPdfWords(learnedWords, "今回は正解単語がありませんでした。")}
+    <h2>復習したい単語</h2>
+    ${formatPdfWords(missedWords, "間違えた単語はありません。")}
+    <div class="pdf-footer">
+      <strong>Office 20の Part107対策ご相談はこちら</strong><br>
+      https://office20.org/サービス/
+    </div>
+  `;
+
+  document.body.append(report);
+  await html2pdf()
+    .set({
+      margin: 10,
+      filename: `drone-quest-result-${Date.now()}.pdf`,
+      image: { type: "jpeg", quality: 0.96 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+    })
+    .from(report)
+    .save();
+  report.remove();
+}
+
+function formatPdfWords(words, emptyMessage) {
+  if (words.length === 0) {
+    return `<p class="pdf-empty">${emptyMessage}</p>`;
+  }
+
+  return `
+    <ul class="pdf-word-list">
+      ${words.map((word) => `<li><span>${word.japanese}</span><strong>${word.answer}</strong></li>`).join("")}
+    </ul>
+  `;
 }
 
 startButton.addEventListener("click", startGame);
