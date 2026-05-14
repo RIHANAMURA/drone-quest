@@ -182,7 +182,7 @@ function finishGame(reason) {
   resultCard.classList.remove("hidden");
 }
 
-function submitLead(event) {
+async function submitLead(event) {
   event.preventDefault();
   const email = leadEmail.value.trim();
   if (!email) return;
@@ -193,12 +193,34 @@ function submitLead(event) {
     correct: correctCount,
     total: missionLength,
     battery,
-    createdAt: new Date().toISOString()
+    result: `スコア: ${score} / 正解 ${correctCount}/${missionLength} / 残りバッテリー ${battery}%`,
+    learnedWords: learnedWords.map((word) => `${word.japanese} = ${word.answer}`).join(", "),
+    missedWords: missedWords.map((word) => `${word.japanese} = ${word.answer}`).join(", "),
+    createdAt: new Date().toISOString(),
+    source: "Drone Quest"
   };
-  const existingLeads = JSON.parse(localStorage.getItem("droneQuestLeads") || "[]");
-  existingLeads.push(lead);
-  localStorage.setItem("droneQuestLeads", JSON.stringify(existingLeads));
-  leadMessage.textContent = "送信を受け付けました。PDFとガイドをお送りします。";
+
+  leadMessage.textContent = "送信中です...";
+
+  try {
+    const response = await fetch(leadForm.action, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(lead)
+    });
+
+    if (!response.ok) {
+      throw new Error("Form submission failed");
+    }
+
+    leadForm.reset();
+    leadMessage.textContent = "送信を受け付けました。結果PDFをお送りします。";
+  } catch (error) {
+    leadMessage.textContent = "送信できませんでした。時間をおいてもう一度お試しください。";
+  }
 }
 
 startButton.addEventListener("click", startGame);
