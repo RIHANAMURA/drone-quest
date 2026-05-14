@@ -245,62 +245,28 @@ async function submitLead(event) {
 
 async function downloadResultPdf(email) {
   await ensurePdfLibrary();
-
-  const report = document.createElement("section");
-  report.className = "pdf-report";
-  report.innerHTML = `
-    <div class="pdf-brand">Office 20</div>
-    <h1>Drone Quest 結果レポート</h1>
-    <p class="pdf-subtitle">FAA Part 107 Vocabulary RPG</p>
-    <div class="pdf-score">${score} 点</div>
-    <p class="pdf-diagnosis">${getDiagnosis()}</p>
-    <div class="pdf-grid">
-      <div><strong>正解</strong><span>${correctCount}/${missionLength}</span></div>
-      <div><strong>残りバッテリー</strong><span>${battery}%</span></div>
-      <div><strong>メール</strong><span>${email}</span></div>
-    </div>
-    <h2>覚えた単語</h2>
-    ${formatPdfWords(learnedWords, "今回は正解単語がありませんでした。")}
-    <h2>復習したい単語</h2>
-    ${formatPdfWords(missedWords, "間違えた単語はありません。")}
-    <div class="pdf-footer">
-      <strong>Office 20の Part107対策ご相談はこちら</strong><br>
-      https://office20.org/サービス/
-    </div>
-  `;
-
-  document.body.append(report);
-  await new Promise((resolve) => requestAnimationFrame(resolve));
-  try {
-    await html2pdf()
-      .set({
-        margin: 10,
-        filename: `drone-quest-result-${Date.now()}.pdf`,
-        image: { type: "jpeg", quality: 0.96 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-      })
-      .from(report)
-      .save();
-  } finally {
-    report.remove();
-  }
+  const canvas = createResultCanvas(email);
+  const image = canvas.toDataURL("image/jpeg", 0.96);
+  const PDF = window.jspdf?.jsPDF || window.jsPDF;
+  const pdf = new PDF({ unit: "mm", format: "a4", orientation: "portrait" });
+  pdf.addImage(image, "JPEG", 0, 0, 210, 297);
+  pdf.save(`drone-quest-result-${Date.now()}.pdf`);
 }
 
 function ensurePdfLibrary() {
-  if (typeof html2pdf !== "undefined") {
+  if (window.jspdf?.jsPDF || window.jsPDF) {
     return Promise.resolve();
   }
 
   const sources = [
-    "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js",
-    "https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
+    "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",
+    "https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"
   ];
 
   return sources.reduce((chain, source) => {
     return chain.catch(() => loadScript(source));
   }, Promise.reject()).then(() => {
-    if (typeof html2pdf === "undefined") {
+    if (!window.jspdf?.jsPDF && !window.jsPDF) {
       throw new Error("PDF library is not available");
     }
   });
@@ -326,6 +292,141 @@ function formatPdfWords(words, emptyMessage) {
       ${words.map((word) => `<li><span>${word.japanese}</span><strong>${word.answer}</strong></li>`).join("")}
     </ul>
   `;
+}
+
+function createResultCanvas(email) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1240;
+  canvas.height = 1754;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  let y = 110;
+  ctx.fillStyle = "#2563eb";
+  ctx.font = "900 34px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillText("Office 20", 90, y);
+
+  y += 80;
+  ctx.fillStyle = "#172033";
+  ctx.font = "900 60px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillText("Drone Quest 結果レポート", 90, y);
+
+  y += 46;
+  ctx.fillStyle = "#667085";
+  ctx.font = "800 26px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillText("FAA Part 107 Vocabulary RPG", 90, y);
+
+  y += 78;
+  drawBadge(ctx, 90, y - 46, `${score} 点`, "#eef8ff", "#2563eb", 46);
+
+  y += 54;
+  y = drawWrappedText(ctx, getDiagnosis(), 90, y, 1060, 32, "#166534", "900 28px system-ui, -apple-system, BlinkMacSystemFont, sans-serif");
+
+  y += 34;
+  drawInfoBox(ctx, 90, y, "正解", `${correctCount}/${missionLength}`);
+  drawInfoBox(ctx, 430, y, "残りバッテリー", `${battery}%`);
+  drawInfoBox(ctx, 770, y, "メール", email);
+
+  y += 150;
+  y = drawWordSection(ctx, "覚えた単語", learnedWords, "今回は正解単語がありませんでした。", y);
+
+  y += 24;
+  y = drawWordSection(ctx, "復習したい単語", missedWords, "間違えた単語はありません。", y);
+
+  ctx.strokeStyle = "#c7ddff";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(90, 1580);
+  ctx.lineTo(1150, 1580);
+  ctx.stroke();
+
+  ctx.fillStyle = "#667085";
+  ctx.font = "800 26px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillText("Office 20の Part107対策ご相談はこちら", 90, 1635);
+  ctx.fillText("https://office20.org/サービス/", 90, 1680);
+
+  return canvas;
+}
+
+function drawBadge(ctx, x, y, text, background, color, fontSize) {
+  const width = ctx.measureText(text).width + 52;
+  roundCanvasRect(ctx, x, y, width, 74, 16, background);
+  ctx.fillStyle = color;
+  ctx.font = `900 ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+  ctx.fillText(text, x + 26, y + 50);
+}
+
+function drawInfoBox(ctx, x, y, label, value) {
+  roundCanvasRect(ctx, x, y, 300, 102, 14, "#f8fbff", "#c7ddff");
+  ctx.fillStyle = "#667085";
+  ctx.font = "800 22px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillText(label, x + 22, y + 36);
+  ctx.fillStyle = "#172033";
+  ctx.font = "900 27px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+  drawWrappedText(ctx, value, x + 22, y + 76, 252, 30, "#172033", "900 27px system-ui, -apple-system, BlinkMacSystemFont, sans-serif");
+}
+
+function drawWordSection(ctx, title, words, emptyMessage, y) {
+  ctx.fillStyle = "#172033";
+  ctx.font = "900 34px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillText(title, 90, y);
+  y += 44;
+
+  const list = words.length ? words.slice(0, 8) : [{ japanese: emptyMessage, answer: "" }];
+  list.forEach((word) => {
+    roundCanvasRect(ctx, 90, y, 1060, 54, 12, "#f8fbff", "#e5eefb");
+    ctx.fillStyle = "#172033";
+    ctx.font = "850 24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+    const text = word.answer ? `${word.japanese} = ${word.answer}` : word.japanese;
+    ctx.fillText(text, 112, y + 36);
+    y += 66;
+  });
+
+  return y;
+}
+
+function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, color, font) {
+  ctx.fillStyle = color;
+  ctx.font = font;
+  const words = String(text).split("");
+  let line = "";
+
+  words.forEach((char) => {
+    const testLine = line + char;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      ctx.fillText(line, x, y);
+      line = char;
+      y += lineHeight;
+    } else {
+      line = testLine;
+    }
+  });
+
+  if (line) {
+    ctx.fillText(line, x, y);
+    y += lineHeight;
+  }
+
+  return y;
+}
+
+function roundCanvasRect(ctx, x, y, width, height, radius, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + width, y, x + width, y + height, radius);
+  ctx.arcTo(x + width, y + height, x, y + height, radius);
+  ctx.arcTo(x, y + height, x, y, radius);
+  ctx.arcTo(x, y, x + width, y, radius);
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  if (stroke) {
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
 }
 
 startButton.addEventListener("click", startGame);
