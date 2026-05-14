@@ -244,9 +244,7 @@ async function submitLead(event) {
 }
 
 async function downloadResultPdf(email) {
-  if (typeof html2pdf === "undefined") {
-    throw new Error("PDF library is not available");
-  }
+  await ensurePdfLibrary();
 
   const report = document.createElement("section");
   report.className = "pdf-report";
@@ -272,17 +270,49 @@ async function downloadResultPdf(email) {
   `;
 
   document.body.append(report);
-  await html2pdf()
-    .set({
-      margin: 10,
-      filename: `drone-quest-result-${Date.now()}.pdf`,
-      image: { type: "jpeg", quality: 0.96 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-    })
-    .from(report)
-    .save();
-  report.remove();
+  try {
+    await html2pdf()
+      .set({
+        margin: 10,
+        filename: `drone-quest-result-${Date.now()}.pdf`,
+        image: { type: "jpeg", quality: 0.96 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+      })
+      .from(report)
+      .save();
+  } finally {
+    report.remove();
+  }
+}
+
+function ensurePdfLibrary() {
+  if (typeof html2pdf !== "undefined") {
+    return Promise.resolve();
+  }
+
+  const sources = [
+    "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js",
+    "https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
+  ];
+
+  return sources.reduce((chain, source) => {
+    return chain.catch(() => loadScript(source));
+  }, Promise.reject()).then(() => {
+    if (typeof html2pdf === "undefined") {
+      throw new Error("PDF library is not available");
+    }
+  });
+}
+
+function loadScript(source) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = source;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.append(script);
+  });
 }
 
 function formatPdfWords(words, emptyMessage) {
