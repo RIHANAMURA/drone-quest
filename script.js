@@ -270,6 +270,7 @@ async function downloadResultPdf(email) {
   `;
 
   document.body.append(report);
+  await new Promise((resolve) => requestAnimationFrame(resolve));
   try {
     await html2pdf()
       .set({
