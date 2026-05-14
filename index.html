@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Part 107 Drone Quest</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=lead3" />
   </head>
   <body>
     <main class="app">
@@ -61,19 +61,35 @@
 
         <section id="start-card" class="overlay-card">
           <h2>Mission Ready</h2>
+          <p class="brand-kicker">Powered by Office 20</p>
+          <p class="brand-proof">Part 107 合格率 94% の実績</p>
           <p>10問のPart 107用語クイズです。正解で前進、不正解でバッテリーが減ります。</p>
           <button id="start-button" class="primary-button" type="button">スタート</button>
         </section>
 
         <section id="result-card" class="overlay-card hidden">
           <h2 id="result-title">Mission Complete</h2>
-          <p id="result-message"></p>
+          <p id="result-message" class="result-summary"></p>
           <div id="learned-list" class="learned-list"></div>
+          <form id="lead-form" class="lead-box">
+            <div class="lead-copy">
+              <strong>📋 あなたの結果をPDFで受け取る</strong>
+            </div>
+            <div class="lead-fields">
+              <label class="sr-only" for="lead-email">メールアドレス</label>
+              <input id="lead-email" name="email" type="email" placeholder="メールアドレス" autocomplete="email" required />
+              <button type="submit">受け取る</button>
+            </div>
+            <p id="lead-message" class="lead-message"></p>
+          </form>
+          <a class="course-link" href="https://office20.org/%e3%82%b5%e3%83%bc%e3%83%93%e3%82%b9/" target="_blank" rel="noreferrer">Office 20の Part107対策ご相談はこちら→</a>
           <button id="restart-button" class="primary-button" type="button">もう一度挑戦</button>
         </section>
+
+        <footer class="brand-footer">© Office 20 | drone-exam.jp</footer>
       </section>
     </main>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=lead3"></script>
   </body>
 </html>

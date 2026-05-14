@@ -56,6 +56,9 @@ const resultCard = document.querySelector("#result-card");
 const resultTitle = document.querySelector("#result-title");
 const resultMessage = document.querySelector("#result-message");
 const learnedList = document.querySelector("#learned-list");
+const leadForm = document.querySelector("#lead-form");
+const leadEmail = document.querySelector("#lead-email");
+const leadMessage = document.querySelector("#lead-message");
 const startButton = document.querySelector("#start-button");
 const restartButton = document.querySelector("#restart-button");
 
@@ -159,8 +162,10 @@ function finishGame(reason) {
   });
 
   resultTitle.textContent = reason === "battery" ? "Battery Depleted" : "Mission Complete";
-  resultMessage.textContent = `正解数 ${correctCount}/${missionLength}、スコア ${score}、残りバッテリー ${battery}%です。`;
+  resultMessage.textContent = `スコア: ${score} / 正解 ${correctCount}/${missionLength} / 残りバッテリー ${battery}%`;
   learnedList.innerHTML = "";
+  leadForm.reset();
+  leadMessage.textContent = "";
 
   const reviewWords = learnedWords.length > 0 ? learnedWords : missedWords.slice(0, 6);
   if (reviewWords.length === 0) {
@@ -177,6 +182,26 @@ function finishGame(reason) {
   resultCard.classList.remove("hidden");
 }
 
+function submitLead(event) {
+  event.preventDefault();
+  const email = leadEmail.value.trim();
+  if (!email) return;
+
+  const lead = {
+    email,
+    score,
+    correct: correctCount,
+    total: missionLength,
+    battery,
+    createdAt: new Date().toISOString()
+  };
+  const existingLeads = JSON.parse(localStorage.getItem("droneQuestLeads") || "[]");
+  existingLeads.push(lead);
+  localStorage.setItem("droneQuestLeads", JSON.stringify(existingLeads));
+  leadMessage.textContent = "送信を受け付けました。PDFとガイドをお送りします。";
+}
+
 startButton.addEventListener("click", startGame);
 restartButton.addEventListener("click", startGame);
+leadForm.addEventListener("submit", submitLead);
 updateStats();
