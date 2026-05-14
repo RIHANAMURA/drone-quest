@@ -55,6 +55,7 @@ const startCard = document.querySelector("#start-card");
 const resultCard = document.querySelector("#result-card");
 const resultTitle = document.querySelector("#result-title");
 const resultMessage = document.querySelector("#result-message");
+const diagnosisMessage = document.querySelector("#diagnosis-message");
 const learnedList = document.querySelector("#learned-list");
 const leadForm = document.querySelector("#lead-form");
 const leadEmail = document.querySelector("#lead-email");
@@ -163,6 +164,7 @@ function finishGame(reason) {
 
   resultTitle.textContent = reason === "battery" ? "Battery Depleted" : "Mission Complete";
   resultMessage.textContent = `スコア: ${score} / 正解 ${correctCount}/${missionLength} / 残りバッテリー ${battery}%`;
+  diagnosisMessage.textContent = getDiagnosis();
   learnedList.innerHTML = "";
   leadForm.reset();
   leadMessage.textContent = "";
@@ -180,6 +182,18 @@ function finishGame(reason) {
   }
 
   resultCard.classList.remove("hidden");
+}
+
+function getDiagnosis() {
+  if (correctCount >= 7) {
+    return "診断: 受験準備OK。Part 107英語ボキャブラリーの基礎はかなり固まっています。";
+  }
+
+  if (correctCount <= 5) {
+    return "診断: 要対策。Part 107頻出英語をもう一度押さえるとスコアが伸びます。";
+  }
+
+  return "診断: あと一歩。7問以上を目標に、間違えた単語を復習しましょう。";
 }
 
 async function submitLead(event) {
@@ -241,6 +255,7 @@ async function downloadResultPdf(email) {
     <h1>Drone Quest 結果レポート</h1>
     <p class="pdf-subtitle">FAA Part 107 Vocabulary RPG</p>
     <div class="pdf-score">${score} 点</div>
+    <p class="pdf-diagnosis">${getDiagnosis()}</p>
     <div class="pdf-grid">
       <div><strong>正解</strong><span>${correctCount}/${missionLength}</span></div>
       <div><strong>残りバッテリー</strong><span>${battery}%</span></div>
