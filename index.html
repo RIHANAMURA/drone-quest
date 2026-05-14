@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Part 107 Drone Quest</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="game-shell" aria-live="polite">
+        <header class="top-bar">
+          <div>
+            <p class="eyebrow">Part 107 Vocabulary RPG</p>
+            <h1>Drone Quest</h1>
+          </div>
+          <div class="stats" aria-label="game stats">
+            <div class="stat">
+              <span>Score</span>
+              <strong id="score">0</strong>
+            </div>
+            <div class="stat">
+              <span>Battery</span>
+              <strong id="battery">100%</strong>
+            </div>
+            <div class="stat">
+              <span>Mission</span>
+              <strong id="mission">1/10</strong>
+            </div>
+          </div>
+        </header>
+
+        <section class="map-panel">
+          <div class="sky">
+            <div class="route">
+              <div class="route-fill" id="route-fill"></div>
+            </div>
+            <div class="checkpoint start">Start</div>
+            <div class="checkpoint finish">FAA</div>
+            <div id="drone" class="drone" aria-label="drone">
+              <span class="rotor rotor-nw"></span>
+              <span class="rotor rotor-ne"></span>
+              <span class="rotor rotor-sw"></span>
+              <span class="rotor rotor-se"></span>
+              <span class="arm arm-x"></span>
+              <span class="arm arm-y"></span>
+              <span class="body">
+                <span class="lens"></span>
+              </span>
+              <span class="shadow"></span>
+            </div>
+          </div>
+        </section>
+
+        <section id="quiz-card" class="quiz-card">
+          <p class="prompt-label">このPart 107用語の英語は？</p>
+          <h2 id="meaning">小型無人航空機</h2>
+          <div id="choices" class="choices"></div>
+          <p id="feedback" class="feedback">正解するとドローンが前進します。</p>
+        </section>
+
+        <section id="start-card" class="overlay-card">
+          <h2>Mission Ready</h2>
+          <p>10問のPart 107用語クイズです。正解で前進、不正解でバッテリーが減ります。</p>
+          <button id="start-button" class="primary-button" type="button">スタート</button>
+        </section>
+
+        <section id="result-card" class="overlay-card hidden">
+          <h2 id="result-title">Mission Complete</h2>
+          <p id="result-message"></p>
+          <div id="learned-list" class="learned-list"></div>
+          <button id="restart-button" class="primary-button" type="button">もう一度挑戦</button>
+        </section>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
