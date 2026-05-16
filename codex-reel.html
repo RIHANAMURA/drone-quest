@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Drone Quest Instagram Reel Preview</title>
+  <style>
+    :root {
+      --navy: #0f172a;
+      --blue: #2563eb;
+      --sky: #38bdf8;
+      --green: #16a34a;
+      --lime: #a3e635;
+      --yellow: #facc15;
+      --white: #f8fafc;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #0b1120;
+      color: var(--white);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .stage {
+      width: min(100vw, 430px);
+      aspect-ratio: 9 / 16;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 20% 18%, rgba(56, 189, 248, 0.35), transparent 26%),
+        radial-gradient(circle at 85% 78%, rgba(163, 230, 53, 0.22), transparent 30%),
+        linear-gradient(180deg, #0f172a 0%, #172554 52%, #020617 100%);
+      border-radius: 30px;
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+      isolation: isolate;
+    }
+
+    .scan {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, transparent, black 12%, black 86%, transparent);
+      animation: drift 15s linear infinite;
+      z-index: -1;
+    }
+
+    .hud {
+      position: absolute;
+      top: 28px;
+      left: 24px;
+      right: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .brand {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 18px;
+    }
+
+    .mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #60a5fa, #22c55e);
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.65);
+    }
+
+    .score-pill {
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.58);
+      color: #dbeafe;
+      font-size: 13px;
+    }
+
+    .drone {
+      position: absolute;
+      top: 178px;
+      left: 50%;
+      width: 178px;
+      height: 104px;
+      transform: translateX(-50%);
+      animation: droneFlight 15s cubic-bezier(.4, 0, .2, 1) infinite;
+      filter: drop-shadow(0 28px 32px rgba(0, 0, 0, 0.38));
+    }
+
+    .drone-body {
+      position: absolute;
+      left: 52px;
+      top: 34px;
+      width: 74px;
+      height: 38px;
+      border-radius: 20px 20px 24px 24px;
+      background: linear-gradient(180deg, #f8fafc, #93c5fd);
+      border: 3px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .camera {
+      position: absolute;
+      left: 79px;
+      top: 62px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 5px solid #38bdf8;
+    }
+
+    .arm {
+      position: absolute;
+      height: 8px;
+      background: #cbd5e1;
+      border-radius: 99px;
+      top: 49px;
+      width: 70px;
+    }
+
+    .arm.left {
+      left: 0;
+      transform: rotate(-13deg);
+    }
+
+    .arm.right {
+      right: 0;
+      transform: rotate(13deg);
+    }
+
+    .rotor {
+      position: absolute;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 6px solid rgba(148, 163, 184, 0.95);
+      top: 25px;
+      animation: spin .22s linear infinite;
+    }
+
+    .rotor::before,
+    .rotor::after {
+      content: "";
+      position: absolute;
+      left: 5px;
+      right: 5px;
+      top: 20px;
+      height: 6px;
+      border-radius: 99px;
+      background: rgba(248, 250, 252, 0.9);
+    }
+
+    .rotor::after {
+      transform: rotate(90deg);
+    }
+
+    .rotor.left {
+      left: -4px;
+    }
+
+    .rotor.right {
+      right: -4px;
+    }
+
+    .route {
+      position: absolute;
+      top: 330px;
+      left: 42px;
+      right: 42px;
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      overflow: hidden;
+    }
+
+    .route::before {
+      content: "";
+      display: block;
+      height: 100%;
+      width: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--sky), var(--lime));
+      transform-origin: left;
+      animation: routeFill 15s linear infinite;
+    }
+
+    .caption {
+      position: absolute;
+      left: 26px;
+      right: 26px;
+      top: 380px;
+      min-height: 220px;
+      display: grid;
+      align-content: center;
+      text-align: center;
+    }
+
+    .line {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 16px;
+      opacity: 0;
+      transform: translateY(18px) scale(0.98);
+      animation: sceneCycle 15s infinite;
+    }
+
+    .line:nth-child(1) { animation-delay: 0s; }
+    .line:nth-child(2) { animation-delay: 3s; }
+    .line:nth-child(3) { animation-delay: 6s; }
+    .line:nth-child(4) { animation-delay: 9s; }
+    .line:nth-child(5) { animation-delay: 12s; }
+
+    .kicker {
+      color: #bae6fd;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .headline {
+      margin: 0;
+      font-size: clamp(30px, 8vw, 42px);
+      line-height: 1.08;
+      font-weight: 950;
+      text-wrap: balance;
+    }
+
+    .sub {
+      margin: 0;
+      color: #dbeafe;
+      font-size: 18px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .quiz-card,
+    .result-card {
+      width: 100%;
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(248, 250, 252, 0.95);
+      color: #0f172a;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+    }
+
+    .quiz-card span {
+      display: block;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .answers {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .answer {
+      padding: 11px 12px;
+      border-radius: 14px;
+      background: #e0f2fe;
+      color: #075985;
+      font-weight: 900;
+    }
+
+    .answer.correct {
+      background: #dcfce7;
+      color: #166534;
+      outline: 3px solid rgba(34, 197, 94, 0.35);
+    }
+
+    .diagnosis {
+      display: grid;
+      gap: 8px;
+      text-align: left;
+      font-weight: 900;
+      font-size: 17px;
+    }
+
+    .diagnosis b {
+      color: #16a34a;
+    }
+
+    .cta {
+      position: absolute;
+      left: 28px;
+      right: 28px;
+      bottom: 58px;
+      display: grid;
+      gap: 14px;
+      text-align: center;
+      animation: pulseCta 15s infinite;
+    }
+
+    .button {
+      display: block;
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #22c55e, #2563eb);
+      color: white;
+      font-size: 22px;
+      font-weight: 950;
+      text-decoration: none;
+      box-shadow: 0 18px 40px rgba(37, 99, 235, 0.35);
+    }
+
+    .footer {
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .progress {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 7px;
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .progress::before {
+      content: "";
+      display: block;
+      height: 100%;
+      width: 100%;
+      background: var(--yellow);
+      transform-origin: left;
+      animation: routeFill 15s linear infinite;
+    }
+
+    @keyframes sceneCycle {
+      0%, 100% {
+        opacity: 0;
+        transform: translateY(18px) scale(0.98);
+      }
+      8%, 18% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      22% {
+        opacity: 0;
+        transform: translateY(-18px) scale(0.98);
+      }
+    }
+
+    @keyframes droneFlight {
+      0%, 100% { transform: translateX(-50%) translateY(0) rotate(-2deg); }
+      20% { transform: translateX(-64%) translateY(-18px) rotate(4deg); }
+      40% { transform: translateX(-38%) translateY(8px) rotate(-5deg); }
+      60% { transform: translateX(-50%) translateY(-24px) rotate(3deg); }
+      80% { transform: translateX(-32%) translateY(6px) rotate(-3deg); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes routeFill {
+      from { transform: scaleX(0); }
+      to { transform: scaleX(1); }
+    }
+
+    @keyframes drift {
+      from { background-position: 0 0; }
+      to { background-position: 44px 88px; }
+    }
+
+    @keyframes pulseCta {
+      0%, 78% { opacity: 0.8; transform: translateY(0); }
+      82%, 96% { opacity: 1; transform: translateY(-7px); }
+      100% { opacity: 0.8; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage" aria-label="Drone Quest reel preview">
+    <div class="scan"></div>
+
+    <div class="hud">
+      <div class="brand"><span class="mark">✦</span> Drone Quest</div>
+      <div class="score-pill">Office20</div>
+    </div>
+
+    <div class="drone" aria-hidden="true">
+      <div class="arm left"></div>
+      <div class="arm right"></div>
+      <div class="rotor left"></div>
+      <div class="rotor right"></div>
+      <div class="drone-body"></div>
+      <div class="camera"></div>
+    </div>
+
+    <div class="route"></div>
+
+    <section class="caption">
+      <div class="line">
+        <div class="kicker">FAA Drone Exam</div>
+        <h1 class="headline">Part 107英語<br>まず10問チェック</h1>
+        <p class="sub">試験に出る単語を<br>ゲーム感覚で腕試し</p>
+      </div>
+
+      <div class="line">
+        <div class="quiz-card">
+          <span>Question</span>
+          <h2>「雲底」の意味は？</h2>
+          <div class="answers">
+            <div class="answer">visibility</div>
+            <div class="answer correct">ceiling</div>
+            <div class="answer">payload</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="line">
+        <h2 class="headline">正解すると<br>ドローンが前進</h2>
+        <p class="sub">不正解だとバッテリー低下。<br>ミッション感覚で覚えられます。</p>
+      </div>
+
+      <div class="line">
+        <div class="result-card">
+          <div class="diagnosis">
+            <span>Score: 1000 / 正解 10/10</span>
+            <span><b>7問以上:</b> 受験準備OK</span>
+            <span><b>5問以下:</b> 要対策</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="line">
+        <div class="kicker">あなたは何問正解できますか？</div>
+        <h2 class="headline">スコアを<br>コメントで教えて</h2>
+      </div>
+    </section>
+
+    <div class="cta">
+      <a class="button" href="./index.html">無料でプレイ</a>
+      <div class="footer">Powered by Office20 | drone-exam.jp</div>
+    </div>
+
+    <div class="progress"></div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "Office20 Drone Quest",
+  "short_name": "Drone Quest",
+  "description": "FAA Part 107英語ボキャブラリーをゲーム感覚で学べるOffice20のミニ学習アプリです。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
